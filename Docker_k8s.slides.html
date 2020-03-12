@@ -13289,7 +13289,7 @@ a.anchor-link {
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <ul>
-<li>3) Create a Django application using docker and docker-compose! (Workshop)</li>
+<li>3) Create a Django + React + Postgres application using docker and docker-compose! (Workshop)</li>
 </ul>
 
 </div>
@@ -13911,7 +13911,7 @@ c06ea563da0e        python:3.8                         "bash"                   
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="But-my-service-needs-more-than-one-container...">But my service needs more than one container...<a class="anchor-link" href="#But-my-service-needs-more-than-one-container...">&#182;</a></h2>
+<h2 id="But-my-application-needs-more-than-one-service...">But my application needs more than one service...<a class="anchor-link" href="#But-my-application-needs-more-than-one-service...">&#182;</a></h2>
 </div>
 </div>
 </div><div class="fragment">
@@ -13929,7 +13929,7 @@ c06ea563da0e        python:3.8                         "bash"                   
 <h2 id="docker-compose-Agenda">docker-compose Agenda<a class="anchor-link" href="#docker-compose-Agenda">&#182;</a></h2>
 </div>
 </div>
-</div></section><section>
+</div><div class="fragment">
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -13939,7 +13939,7 @@ c06ea563da0e        python:3.8                         "bash"                   
 
 </div>
 </div>
-</div></section><section>
+</div></div><div class="fragment">
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -13949,7 +13949,7 @@ c06ea563da0e        python:3.8                         "bash"                   
 
 </div>
 </div>
-</div><div class="fragment">
+</div></div><div class="fragment">
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
@@ -14181,7 +14181,7 @@ services:
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<div class="highlight"><pre><span></span>$ git clone git@github.com:pygrn/todos_django.git .
+<div class="highlight"><pre><span></span>$ git clone https://github.com/pygrn/todos_django.git .
 </pre></div>
 
 </div>
@@ -14313,33 +14313,26 @@ api_1  |</code></pre>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h3 id="Solution:-Use-wait-scripts!">Solution: Use wait scripts!<a class="anchor-link" href="#Solution:-Use-wait-scripts!">&#182;</a></h3><p><a href="https://github.com/vishnubob/wait-for-it">https://github.com/vishnubob/wait-for-it</a></p>
 
-</div>
-</div>
-</div><div class="fragment">
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Kubernetes-Agenda">Kubernetes Agenda<a class="anchor-link" href="#Kubernetes-Agenda">&#182;</a></h2>
-</div>
-</div>
-</div></div><div class="fragment">
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li>1) What's kubernetes?</li>
-</ul>
+<pre><code>version: '3'
+services:
 
-</div>
-</div>
-</div></div></section><section>
-<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
-</div><div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
+  db:
+    image: kartoza/postgis:latest
+    environment:
+      - POSTGRES_DB=a_database
+      - POSTGRES_USER=a_user
+      - POSTGRES_PASS=a_password
+      - ALLOW_IP_RANGE=0.0.0.0/0
+    ports:
+      - 35432:5432</code></pre>
+<p>, this will</p>
 <ul>
-<li>2) How to create a manifest?</li>
+<li>provide a new service named <code>db</code> that will start a PostgreSQL with PostGIS extensions ready</li>
+<li>creating a new database named <code>a_database</code></li>
+<li>granting access for <code>a_user:a_password</code></li>
+<li>allowing connections from any IP</li>
+<li>exposing the container's psql port <code>5432</code> as host <code>35432</code></li>
 </ul>
 
 </div>
@@ -14348,9 +14341,381 @@ api_1  |</code></pre>
 <div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
 </div><div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="WTF??-Both-containers-are-correctly-defined,-but-the-DB-is-not-ready-for-our-web">WTF?? Both containers are correctly defined, but the DB is not ready for our web<a class="anchor-link" href="#WTF??-Both-containers-are-correctly-defined,-but-the-DB-is-not-ready-for-our-web">&#182;</a></h3>
+<pre><code>db_1   | 2019-03-05 15:37:23.354 UTC [40] LOG:  database system was shut down at 2019-02-01 14:24:17 UTC
+db_1   | 2019-03-05 15:37:23.388 UTC [27] LOG:  database system is ready to accept connections
+api_1  | Try to load extra settings: settings-production.py
+api_1  | Performing system checks...
+api_1  | 
+api_1  | System check identified no issues (0 silenced).
+api_1  | Unhandled exception in thread started by &lt;function check_errors.&lt;locals&gt;.wrapper at 0x7fdc5d447268&gt;
+api_1  | Traceback (most recent call last):
+api_1  |   File "/usr/local/lib/python3.6/site-packages/django/db/backends/base/base.py", line 213, in ensure_connection
+api_1  |     self.connect()
+api_1  |   File "/usr/local/lib/python3.6/site-packages/django/db/backends/base/base.py", line 189, in connect
+api_1  |     self.connection = self.get_new_connection(conn_params)
+api_1  |   File "/usr/local/lib/python3.6/site-packages/django/db/backends/postgresql/base.py", line 176, in get_new_connection
+api_1  |     connection = Database.connect(**conn_params)
+api_1  |   File "/usr/local/lib/python3.6/site-packages/psycopg2/__init__.py", line 130, in connect
+api_1  |     conn = _connect(dsn, connection_factory=connection_factory, **kwasync)
+api_1  | psycopg2.OperationalError: could not connect to server: No such file or directory
+api_1  |    Is the server running locally and accepting
+api_1  |    connections on Unix domain socket "/var/run/postgresql/.s.PGSQL.5432"?
+
+...
+...
+
+db_1   | postgres ready
+db_1   | Postgis is missing, installing now
+db_1   | Creating template postgis
+db_1   | Enabling template_postgis as a template
+db_1   | UPDATE 1
+db_1   | Loading postgis extension
+db_1   | CREATE EXTENSION
+db_1   | Enabling hstore in the template
+db_1   | CREATE EXTENSION
+db_1   | Enabling topology in the template
+db_1   | CREATE EXTENSION</code></pre>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Solution:-Use-wait-scripts!">Solution: Use wait scripts!<a class="anchor-link" href="#Solution:-Use-wait-scripts!">&#182;</a></h3><p><a href="https://github.com/vishnubob/wait-for-it">https://github.com/vishnubob/wait-for-it</a></p>
+
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <ul>
-<li>3) Show example</li>
+<li>Fetch the <code>wait-for-it.sh</code> script and save it at <code>utils/wait-for-it.sh</code> //ensure that is executable!<div class="highlight"><pre><span></span>$ mkdir -p utils <span class="o">&amp;&amp;</span> curl https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o utils/wait-for-it.sh <span class="o">&amp;&amp;</span> chmod +x utils/wait-for-it.sh
+</pre></div>
+</li>
 </ul>
+
+</div>
+</div>
+</div></div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Prepare an start script! <code>utils/start-server.sh</code> //it should be executable!</li>
+</ul>
+<div class="highlight"><pre><span></span>pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver <span class="m">0</span>.0.0.0:8000
+</pre></div>
+<p>, this will ensure to review requirements, apply latest pending migrations and start Django!</p>
+
+</div>
+</div>
+</div></div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Improve our composition to change <code>web</code> start command and define a depedency to <code>db</code>:</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="nt">api</span><span class="p">:</span>
+    <span class="nt">build</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">.</span>
+    <span class="nt">volumes</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">.:/code</span>
+    <span class="nt">ports</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&quot;81:8000&quot;</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;./utils/wait-for-it.sh&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;db:5432&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;--&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span>  <span class="s">&quot;./utils/start-server.sh&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">depends_on</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">db</span>
+</pre></div>
+<p>, this will start our Django once the <code>5432/tcp@db</code> is ready to accept connections!</p>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="OK!-Now-our-Django-is-waiting-for-the-DB,-but-still-breaking!">OK! Now our Django is waiting for the DB, but still breaking!<a class="anchor-link" href="#OK!-Now-our-Django-is-waiting-for-the-DB,-but-still-breaking!">&#182;</a></h3><p>We should review our <code>Django</code> config, <strong>it needs some ENV vars to point to our backend</strong></p>
+
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="highlight"><pre><span></span>$ vi todos_project/settings-production.py
+
+<span class="nv">DATABASES</span> <span class="o">=</span> <span class="o">{</span>
+    <span class="s1">&#39;default&#39;</span>: <span class="o">{</span>
+        <span class="c1"># &#39;ENGINE&#39;: &#39;django.db.backends.postgresql_psycopg2&#39;,</span>
+        <span class="s1">&#39;ENGINE&#39;</span>: <span class="s1">&#39;django.db.backends.postgresql&#39;</span>,
+        <span class="s1">&#39;NAME&#39;</span>: os.environ.get<span class="o">(</span><span class="s1">&#39;DB_NAME&#39;</span><span class="o">)</span>,
+        <span class="s1">&#39;USER&#39;</span>: os.environ.get<span class="o">(</span><span class="s1">&#39;DB_USER&#39;</span><span class="o">)</span>,
+        <span class="s1">&#39;PASSWORD&#39;</span>: os.environ.get<span class="o">(</span><span class="s1">&#39;DB_PASSWORD&#39;</span><span class="o">)</span>,
+        <span class="s1">&#39;HOST&#39;</span>: os.environ.get<span class="o">(</span><span class="s1">&#39;DB_HOST&#39;</span><span class="o">)</span>,
+        <span class="s1">&#39;PORT&#39;</span>: os.environ.get<span class="o">(</span><span class="s1">&#39;DB_PORT&#39;</span><span class="o">)</span>,
+    <span class="o">}</span>,
+<span class="o">}</span>
+<span class="nv">ALLOWED_HOSTS</span> <span class="o">=</span> <span class="o">[</span><span class="s1">&#39;*&#39;</span><span class="o">]</span>
+</pre></div>
+
+</div>
+</div>
+</div></div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Config-the-environment-vars-in-the-docker-compose-file">Config the environment vars in the docker-compose file<a class="anchor-link" href="#Config-the-environment-vars-in-the-docker-compose-file">&#182;</a></h3><div class="highlight"><pre><span></span><span class="nn">...</span>
+
+  <span class="nt">api</span><span class="p">:</span>
+    <span class="nt">environment</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">DB_HOST=${DB_HOST}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">DB_PORT=${DB_PORT}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">DB_NAME=${DB_NAME}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">DB_USER=${DB_USER}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">DB_PASSWORD=${DB_PASSWORD}</span>
+
+<span class="nn">...</span>
+
+  <span class="nt">db</span><span class="p">:</span>
+    <span class="nt">environment</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">POSTGRES_DB=${DB_NAME}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">POSTGRES_USER=${DB_USER}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">POSTGRES_PASS=${DB_PASSWORD}</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">ALLOW_IP_RANGE=0.0.0.0/0</span>
+</pre></div>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Create an <code>.env</code> file</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="nv">DB_HOST</span><span class="o">=</span>db
+<span class="nv">DB_PORT</span><span class="o">=</span><span class="m">5432</span>
+<span class="nv">DB_NAME</span><span class="o">=</span>todos
+<span class="nv">DB_USER</span><span class="o">=</span>todos
+<span class="nv">DB_PASSWORD</span><span class="o">=</span>this_is_not_a_secure_password
+</pre></div>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="It's-magic!!-It-works!!!">It's magic!! It works!!!<a class="anchor-link" href="#It's-magic!!-It-works!!!">&#182;</a></h3><p><a href="http://0.0.0.0:81/api/v1/">http://0.0.0.0:81/api/v1/</a></p>
+<p><img src="./pictures/todos_api.png" alt="alt text" title="TODOs API"></p>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="It-can-be-more-intense...">It can be more intense...<a class="anchor-link" href="#It-can-be-more-intense...">&#182;</a></h3><p>We'll try to integrate the <code>React</code> frontend created by <a href="http://github.com/francescarpi">@francescarpi</a>:</p>
+<p><a href="https://github.com/pygrn/todos_react">https://github.com/pygrn/todos_react</a></p>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="The-idea-is-to-show-alternative-ways-to-provide-a-container-as-a-service">The idea is to show alternative ways to provide a container as a service<a class="anchor-link" href="#The-idea-is-to-show-alternative-ways-to-provide-a-container-as-a-service">&#182;</a></h3>
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Create another build script named <code>Dockerfile_frontend</code></li>
+</ul>
+
+</div>
+</div>
+</div></div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<div class="highlight"><pre><span></span><span class="c"># Use an alpine-based (ver small base) node image</span>
+<span class="k">FROM</span><span class="s"> node:alpine</span>
+<span class="k">RUN</span> apk update <span class="o">&amp;&amp;</span> apk upgrade <span class="o">&amp;&amp;</span> <span class="se">\</span>
+    apk add --no-cache bash git openssh
+
+<span class="c"># Prepare our project and their dependencies</span>
+<span class="k">RUN</span> mkdir /code
+<span class="k">WORKDIR</span><span class="s"> /code</span>
+<span class="k">RUN</span> git clone https://github.com/pygrn/todos_react . 
+<span class="k">RUN</span> sed -i <span class="s1">&#39;s;https://server3.microdisseny.com/apps/todos;http://localhost:81;g&#39;</span> src/lib/apiclient.js
+<span class="k">RUN</span> yarn install
+
+<span class="c"># Directly upload the wait-for-it script to the image</span>
+<span class="k">ADD</span> utils/wait-for-it.sh ./
+<span class="k">RUN</span> chmod +x wait-for-it.sh
+</pre></div>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Add the new service!</li>
+</ul>
+<div class="highlight"><pre><span></span><span class="nn">...</span>
+
+  <span class="nt">web</span><span class="p">:</span>
+    <span class="nt">build</span><span class="p">:</span> 
+     <span class="nt">context</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">./</span>
+     <span class="nt">dockerfile</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">Dockerfile_frontend</span>
+    <span class="nt">command</span><span class="p">:</span> <span class="p p-Indicator">[</span><span class="s">&quot;bash&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;./wait-for-it.sh&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;api:8000&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;--&quot;</span><span class="p p-Indicator">,</span> <span class="s">&quot;yarn&quot;</span><span class="p p-Indicator">,</span>  <span class="s">&quot;start&quot;</span><span class="p p-Indicator">]</span>
+    <span class="nt">ports</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="s">&quot;80:3000&quot;</span>
+    <span class="nt">depends_on</span><span class="p">:</span>
+      <span class="p p-Indicator">-</span> <span class="l l-Scalar l-Scalar-Plain">api</span>
+    <span class="nt">restart</span><span class="p">:</span> <span class="l l-Scalar l-Scalar-Plain">always</span>
+</pre></div>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><strong>Now, you can check <a href="http://localhost">http://localhost</a> ...</strong></p>
+
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="./pictures/please.gif" alt="alt text" title="Please"></p>
+
+</div>
+</div>
+</div></div></section></section><section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="Kubernetes-Agenda">Kubernetes Agenda<a class="anchor-link" href="#Kubernetes-Agenda">&#182;</a></h2>
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>1) What's Kubernetes?</li>
+</ul>
+
+</div>
+</div>
+</div></div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>2) Kubernetes structure</li>
+</ul>
+
+</div>
+</div>
+</div></div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="1)-What's-Kubernetes?">1) What's Kubernetes?<a class="anchor-link" href="#1)-What's-Kubernetes?">&#182;</a></h3>
+</div>
+</div>
+</div><div class="fragment">
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<ul>
+<li>Container orchestrator</li>
+<li>The most famous one</li>
+<li>Layer to manage a cluster of containers</li>
+<li>Auto-scaling</li>
+</ul>
+
+</div>
+</div>
+</div></div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Container-orchestrator">Container orchestrator<a class="anchor-link" href="#Container-orchestrator">&#182;</a></h3><ul>
+<li>Easy deploy, gracefully, stateless</li>
+<li>Replication: run X copies</li>
+<li>Built-in load balancers</li>
+<li>Auto-scaling: better resource use</li>
+</ul>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Layer-to-manage-a-cluster">Layer to manage a cluster<a class="anchor-link" href="#Layer-to-manage-a-cluster">&#182;</a></h3><ul>
+<li>Manifest: one file to define all your cluster</li>
+<li>Automate cluster maintenance</li>
+<li>Load balancers</li>
+<li>Manage secrets</li>
+</ul>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="Scalability">Scalability<a class="anchor-link" href="#Scalability">&#182;</a></h3><ul>
+<li>Specify number of container replicas</li>
+<li>Auto pod scaling, based on CPU, memory or custom metrics</li>
+<li>It's a cluster, add more nodes</li>
+</ul>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="2)-Kubernetes-structure">2) Kubernetes structure<a class="anchor-link" href="#2)-Kubernetes-structure">&#182;</a></h3><ul>
+<li>Pod</li>
+<li>Service</li>
+<li>Namespace</li>
+<li>Node</li>
+</ul>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p><img src="./pictures/kubernetes_cluster.png" alt="alt text" title="Kubernetes cluster"></p>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>And <strong>much much much more...</strong></p>
+<p>If you want more we can do another session</p>
 
 </div>
 </div>
@@ -14362,6 +14727,21 @@ api_1  |</code></pre>
 <li><a href="https://www.slideshare.net/Docker/introduction-to-docker-2017">https://www.slideshare.net/Docker/introduction-to-docker-2017</a></li>
 </ul>
 
+</div>
+</div>
+</div></section></section><section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="It's-all!">It's all!<a class="anchor-link" href="#It's-all!">&#182;</a></h1><p><img src="pictures/thanks.gif" alt="Thanks!" title="Thanks"></p>
+
+</div>
+</div>
+</div></section></section><section><section>
+<div class="cell border-box-sizing text_cell rendered"><div class="prompt input_prompt">
+</div><div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Questions?">Questions?<a class="anchor-link" href="#Questions?">&#182;</a></h1>
 </div>
 </div>
 </div></section></section>
